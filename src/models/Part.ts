@@ -8,6 +8,11 @@ export type ShapeType =
   | 'text'
 
 export interface Connector {
+  export interface ConnectorSettings {
+  length: number
+  height: number
+  clearance: number
+}
   side: 'left' | 'right' | 'top' | 'bottom'
   type: 'tab' | 'slot' | 'none'
 }
@@ -20,5 +25,6 @@ export interface Part {
   height: number
   thickness: number
   switchMount: SwitchMount
+  connectorSettings: ConnectorSettings
   connectors: Connector[]
 }

@@ -33,33 +33,40 @@ function createOutline(part: Part): THREE.Shape {
     return createHeartOutline(part.width, part.height)
   }
 
-  return createRectangleOutline(part.width, part.height)
+  return createRectangleOutline(part)
 }
 
-function createRectangleOutline(width: number, height: number): THREE.Shape {
+function createRectangleOutline(part: Part): THREE.Shape {
   const shape = new THREE.Shape()
 
-  const w = width / 2
-  const h = height / 2
+  const w = part.width / 2
+  const h = part.height / 2
 
-  // Start at bottom-left, but include left slot and right tab
+  const tabLength = part.connectorSettings.length
+  const tabHeight = part.connectorSettings.height
+  const slotLength = part.connectorSettings.length + part.connectorSettings.clearance
+  const slotHeight = part.connectorSettings.height + part.connectorSettings.clearance
+
+  const tabHalf = tabHeight / 2
+  const slotHalf = slotHeight / 2
+
   shape.moveTo(-w, -h)
   shape.lineTo(w, -h)
 
   // right tab
-  shape.lineTo(w, -6)
-  shape.lineTo(w + 6, -6)
-  shape.lineTo(w + 6, 6)
-  shape.lineTo(w, 6)
+  shape.lineTo(w, -tabHalf)
+  shape.lineTo(w + tabLength, -tabHalf)
+  shape.lineTo(w + tabLength, tabHalf)
+  shape.lineTo(w, tabHalf)
 
   shape.lineTo(w, h)
   shape.lineTo(-w, h)
 
-  // left slot cut-in
-  shape.lineTo(-w, 6)
-  shape.lineTo(-w + 6, 6)
-  shape.lineTo(-w + 6, -6)
-  shape.lineTo(-w, -6)
+  // left slot
+  shape.lineTo(-w, slotHalf)
+  shape.lineTo(-w + slotLength, slotHalf)
+  shape.lineTo(-w + slotLength, -slotHalf)
+  shape.lineTo(-w, -slotHalf)
 
   shape.lineTo(-w, -h)
   shape.closePath()
