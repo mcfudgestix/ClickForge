@@ -16,14 +16,11 @@ export function createPartMesh(part: Part): THREE.Group {
 
   const material = new THREE.MeshStandardMaterial({
     color: 0x8b5cf6,
-    metalness: 0.1,
     roughness: 0.6,
     side: THREE.DoubleSide,
   })
 
-  const body = new THREE.Mesh(geometry, material)
-  group.add(body)
-
+  group.add(new THREE.Mesh(geometry, material))
   return group
 }
 
@@ -45,10 +42,26 @@ function createRectangleOutline(width: number, height: number): THREE.Shape {
   const w = width / 2
   const h = height / 2
 
+  // Start at bottom-left, but include left slot and right tab
   shape.moveTo(-w, -h)
   shape.lineTo(w, -h)
+
+  // right tab
+  shape.lineTo(w, -6)
+  shape.lineTo(w + 6, -6)
+  shape.lineTo(w + 6, 6)
+  shape.lineTo(w, 6)
+
   shape.lineTo(w, h)
   shape.lineTo(-w, h)
+
+  // left slot cut-in
+  shape.lineTo(-w, 6)
+  shape.lineTo(-w + 6, 6)
+  shape.lineTo(-w + 6, -6)
+  shape.lineTo(-w, -6)
+
+  shape.lineTo(-w, -h)
   shape.closePath()
 
   return shape
@@ -65,39 +78,15 @@ function createHeartOutline(width: number, height: number): THREE.Shape {
 
   shape.moveTo(0, -height * 0.35)
 
-  shape.bezierCurveTo(
-    -width * 0.5,
-    -height * 0.05,
-    -width * 0.45,
-    height * 0.35,
-    -width * 0.15,
-    height * 0.25
-  )
-
-  shape.bezierCurveTo(
-    -width * 0.05,
-    height * 0.45,
-    width * 0.05,
-    height * 0.45,
-    width * 0.15,
-    height * 0.25
-  )
-
-  shape.bezierCurveTo(
-    width * 0.45,
-    height * 0.35,
-    width * 0.5,
-    -height * 0.05,
-    0,
-    -height * 0.35
-  )
+  shape.bezierCurveTo(-width * 0.5, -height * 0.05, -width * 0.45, height * 0.35, -width * 0.15, height * 0.25)
+  shape.bezierCurveTo(-width * 0.05, height * 0.45, width * 0.05, height * 0.45, width * 0.15, height * 0.25)
+  shape.bezierCurveTo(width * 0.45, height * 0.35, width * 0.5, -height * 0.05, 0, -height * 0.35)
 
   return shape
 }
 
 function addMxSwitchHole(shape: THREE.Shape, size: number) {
   const hole = new THREE.Path()
-
   const s = size / 2
 
   hole.moveTo(-s, -s)
