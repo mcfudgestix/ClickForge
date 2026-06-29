@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import type { Part } from '../models/Part'
+import { ConnectorBuilder } from './ConnectorBuilder'
 
 export function createPartMesh(part: Part): THREE.Group {
   const group = new THREE.Group()
@@ -42,13 +43,15 @@ function createRectangleOutline(part: Part): THREE.Shape {
   const w = part.width / 2
   const h = part.height / 2
 
-  const tabLength = part.connectorSettings.length
-  const tabHeight = part.connectorSettings.height
-  const slotLength = part.connectorSettings.length + part.connectorSettings.clearance
-  const slotHeight = part.connectorSettings.height + part.connectorSettings.clearance
+const connectorBuilder = new ConnectorBuilder()
 
-  const tabHalf = tabHeight / 2
-  const slotHalf = slotHeight / 2
+const tabLength = connectorBuilder.getTabLength(part)
+const tabHeight = connectorBuilder.getTabHeight(part)
+const slotLength = connectorBuilder.getSlotLength(part)
+const slotHeight = connectorBuilder.getSlotHeight(part)
+
+const tabHalf = tabHeight / 2
+const slotHalf = slotHeight / 2
 
   shape.moveTo(-w, -h)
   shape.lineTo(w, -h)
