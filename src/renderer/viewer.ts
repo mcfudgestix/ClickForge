@@ -1,15 +1,13 @@
 import * as THREE from 'three'
-
-type BlankSettings = {
-  shape: string
-  width: number
-  height: number
-  thickness: number
-  switchHole: number
-}
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import type { Part } from '../models/Part'
+import { createPartMesh } from '../geometry/ShapeEngine'
 
 let scene: THREE.Scene
 let blankGroup: THREE.Group | null = null
+let renderer: THREE.WebGLRenderer
+let camera: THREE.PerspectiveCamera
+let controls: OrbitControls
 
 export function createViewer() {
   const viewer = document.querySelector<HTMLDivElement>('#viewer')!
@@ -17,7 +15,7 @@ export function createViewer() {
   scene = new THREE.Scene()
   scene.background = new THREE.Color(0x2b2b2b)
 
-  const camera = new THREE.PerspectiveCamera(
+  camera = new THREE.PerspectiveCamera(
     45,
     viewer.clientWidth / viewer.clientHeight,
     0.1,
@@ -25,11 +23,17 @@ export function createViewer() {
   )
 
   camera.position.set(75, 60, 85)
-  camera.lookAt(0, 0, 0)
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true })
+  renderer = new THREE.WebGLRenderer({ antialias: true })
   renderer.setSize(viewer.clientWidth, viewer.clientHeight)
   viewer.appendChild(renderer.domElement)
+
+  controls = new OrbitControls(camera, renderer.domElement)
+  controls.target.set(0, 0, 0)
+  controls.enableDamping = true
+  controls.dampingFactor = 0.08
+  controls.enablePan = true
+  controls.enableZoom = true
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.8))
 
@@ -38,85 +42,37 @@ export function createViewer() {
   scene.add(light)
 
   const grid = new THREE.GridHelper(140, 14)
-  grid.rotation.x = Math.PI / 2
   scene.add(grid)
 
-  function animate() {
-    requestAnimationFrame(animate)
-    renderer.render(scene, camera)
-  }
+  const axes = new THREE.AxesHelper(40)
+  scene.add(axes)
+
+  window.addEventListener('resize', resizeViewer)
 
   animate()
 }
 
-export function updateBlank(settings: BlankSettings) {
+export function updateBlank(part: Part) {
   if (blankGroup) {
     scene.remove(blankGroup)
   }
 
-  blankGroup = new THREE.Group()
-
-  const body = createShape(settings)
-  blankGroup.add(body)
-
-  const switchHole = createSwitchHole(settings.switchHole, settings.thickness)
-  blankGroup.add(switchHole)
-
+  blankGroup = createPartMesh(part)
   scene.add(blankGroup)
 }
 
-function createShape(settings: BlankSettings) {
-  let geometry: THREE.BufferGeometry
+function resizeViewer() {
+  const viewer = document.querySelector<HTMLDivElement>('#viewer')!
 
-  if (settings.shape === 'circle') {
-    geometry = new THREE.CylinderGeometry(
-      settings.width / 2,
-      settings.width / 2,
-      settings.thickness,
-      80
-    )
-    geometry.rotateX(Math.PI / 2)
-  } else if (settings.shape === 'heart') {
-    geometry = createHeartGeometry(settings.width, settings.height, settings.thickness)
-  } else {
-    geometry = new THREE.BoxGeometry(
-      settings.width,
-      settings.height,
-      settings.thickness
-    )
-  }
+  camera.aspect = viewer.clientWidth / viewer.clientHeight
+  camera.updateProjectionMatrix()
 
-  const material = new THREE.MeshStandardMaterial({ color: 0x8b5cf6 })
-  return new THREE.Mesh(geometry, material)
+  renderer.setSize(viewer.clientWidth, viewer.clientHeight)
 }
 
-function createSwitchHole(size: number, thickness: number) {
-  const geometry = new THREE.BoxGeometry(size, size, thickness + 0.4)
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x111111,
-  })
+function animate() {
+  requestAnimationFrame(animate)
 
-  const hole = new THREE.Mesh(geometry, material)
-  hole.position.z = 0.1
-  return hole
-}
-
-function createHeartGeometry(width: number, height: number, thickness: number) {
-  const shape = new THREE.Shape()
-
-  shape.moveTo(0, -height * 0.35)
-  shape.bezierCurveTo(-width * 0.5, -height * 0.05, -width * 0.45, height * 0.35, -width * 0.15, height * 0.25)
-  shape.bezierCurveTo(-width * 0.05, height * 0.45, width * 0.05, height * 0.45, width * 0.15, height * 0.25)
-  shape.bezierCurveTo(width * 0.45, height * 0.35, width * 0.5, -height * 0.05, 0, -height * 0.35)
-
-  const geometry = new THREE.ExtrudeGeometry(shape, {
-    depth: thickness,
-    bevelEnabled: true,
-    bevelSize: 1,
-    bevelThickness: 1,
-    bevelSegments: 2,
-  })
-
-  geometry.center()
-  return geometry
+  controls.update()
+  renderer.render(scene, camera)
 }

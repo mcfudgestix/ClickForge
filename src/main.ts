@@ -50,11 +50,14 @@ const switchHoleInput = document.querySelector<HTMLInputElement>('#switchHole')!
 
 function refresh() {
   updateBlank({
-    shape: shapeInput.value,
+    id: 'part-1',
+    name: 'Main Blank',
+    shape: shapeInput.value as any,
     width: Number(widthInput.value),
     height: Number(heightInput.value),
     thickness: Number(thicknessInput.value),
     switchHole: Number(switchHoleInput.value),
+    connectors: [],
   })
 }
 
