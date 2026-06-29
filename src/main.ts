@@ -56,7 +56,12 @@ function refresh() {
     width: Number(widthInput.value),
     height: Number(heightInput.value),
     thickness: Number(thicknessInput.value),
-    switchHole: Number(switchHoleInput.value),
+    switchMount: {
+      type: 'mx',
+      cutoutSize: Number(switchHoleInput.value),
+      tolerance: 0.2,
+      plateThickness: 1.5,
+    },
     connectors: [],
   })
 }

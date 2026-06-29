@@ -4,55 +4,67 @@ import type { Part } from '../models/Part'
 export function createPartMesh(part: Part): THREE.Group {
   const group = new THREE.Group()
 
-  const body = createBodyMesh(part)
-  const switchHole = createSwitchHoleMesh(part)
+  const outline = createOutline(part)
+  addMxSwitchHole(outline, part.switchMount.cutoutSize)
 
+  const geometry = new THREE.ExtrudeGeometry(outline, {
+    depth: part.thickness,
+    bevelEnabled: false,
+  })
+
+  geometry.center()
+
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x8b5cf6,
+    metalness: 0.1,
+    roughness: 0.6,
+    side: THREE.DoubleSide,
+  })
+
+  const body = new THREE.Mesh(geometry, material)
   group.add(body)
-  group.add(switchHole)
 
   return group
 }
 
-function createBodyMesh(part: Part): THREE.Mesh {
-  let geometry: THREE.BufferGeometry
-
+function createOutline(part: Part): THREE.Shape {
   if (part.shape === 'circle') {
-    geometry = new THREE.CylinderGeometry(
-      part.width / 2,
-      part.width / 2,
-      part.thickness,
-      80
-    )
-    geometry.rotateX(Math.PI / 2)
-  } else if (part.shape === 'heart') {
-    geometry = createHeartGeometry(part.width, part.height, part.thickness)
-  } else {
-    geometry = new THREE.BoxGeometry(part.width, part.height, part.thickness)
+    return createCircleOutline(part.width / 2)
   }
 
-  const material = new THREE.MeshStandardMaterial({ color: 0x8b5cf6 })
-  return new THREE.Mesh(geometry, material)
+  if (part.shape === 'heart') {
+    return createHeartOutline(part.width, part.height)
+  }
+
+  return createRectangleOutline(part.width, part.height)
 }
 
-function createSwitchHoleMesh(part: Part): THREE.Mesh {
-  const geometry = new THREE.BoxGeometry(
-    part.switchHole,
-    part.switchHole,
-    part.thickness + 0.4
-  )
+function createRectangleOutline(width: number, height: number): THREE.Shape {
+  const shape = new THREE.Shape()
 
-  const material = new THREE.MeshStandardMaterial({ color: 0x111111 })
-  const hole = new THREE.Mesh(geometry, material)
+  const w = width / 2
+  const h = height / 2
 
-  hole.position.z = 0.1
+  shape.moveTo(-w, -h)
+  shape.lineTo(w, -h)
+  shape.lineTo(w, h)
+  shape.lineTo(-w, h)
+  shape.closePath()
 
-  return hole
+  return shape
 }
 
-function createHeartGeometry(width: number, height: number, thickness: number) {
+function createCircleOutline(radius: number): THREE.Shape {
+  const shape = new THREE.Shape()
+  shape.absarc(0, 0, radius, 0, Math.PI * 2, false)
+  return shape
+}
+
+function createHeartOutline(width: number, height: number): THREE.Shape {
   const shape = new THREE.Shape()
 
   shape.moveTo(0, -height * 0.35)
+
   shape.bezierCurveTo(
     -width * 0.5,
     -height * 0.05,
@@ -61,6 +73,7 @@ function createHeartGeometry(width: number, height: number, thickness: number) {
     -width * 0.15,
     height * 0.25
   )
+
   shape.bezierCurveTo(
     -width * 0.05,
     height * 0.45,
@@ -69,6 +82,7 @@ function createHeartGeometry(width: number, height: number, thickness: number) {
     width * 0.15,
     height * 0.25
   )
+
   shape.bezierCurveTo(
     width * 0.45,
     height * 0.35,
@@ -78,14 +92,19 @@ function createHeartGeometry(width: number, height: number, thickness: number) {
     -height * 0.35
   )
 
-  const geometry = new THREE.ExtrudeGeometry(shape, {
-    depth: thickness,
-    bevelEnabled: true,
-    bevelSize: 1,
-    bevelThickness: 1,
-    bevelSegments: 2,
-  })
+  return shape
+}
 
-  geometry.center()
-  return geometry
+function addMxSwitchHole(shape: THREE.Shape, size: number) {
+  const hole = new THREE.Path()
+
+  const s = size / 2
+
+  hole.moveTo(-s, -s)
+  hole.lineTo(s, -s)
+  hole.lineTo(s, s)
+  hole.lineTo(-s, s)
+  hole.closePath()
+
+  shape.holes.push(hole)
 }
