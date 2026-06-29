@@ -1,11 +1,19 @@
-import * as THREE from 'three'
+import type { Part } from '../models/Part'
 
 export class ConnectorBuilder {
+  getTabLength(part: Part): number {
+    return part.connectorSettings.length
+  }
 
-    apply(shape: THREE.Shape) {
+  getTabHeight(part: Part): number {
+    return part.connectorSettings.height
+  }
 
-        return shape
+  getSlotLength(part: Part): number {
+    return part.connectorSettings.length + part.connectorSettings.clearance
+  }
 
-    }
-
+  getSlotHeight(part: Part): number {
+    return part.connectorSettings.height + part.connectorSettings.clearance
+  }
 }
